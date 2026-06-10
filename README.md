@@ -14,8 +14,11 @@ Beyond linking the configs, the installer also:
   Homebrew cask on Windows-native). Idempotent — if it's already
   present, it's skipped.
 - Installs the **Homebrew packages / winget IDs** listed in
-  `lib/install_brew.sh` (`install_recommended_stack`). On macOS, Linux
-  and WSL, Homebrew is used. On Windows-native, winget is the fallback.
+  `lib/packages.toml`. On macOS, Linux and WSL, Homebrew is used. On
+  Windows-native, winget is the fallback. The manifest is the single
+  source of truth for what to install — `lib/install_brew.sh` reads
+  it on every run. If the manifest is missing, a hardcoded fallback
+  kicks in (with a warning).
 - Bootstraps **Oh My Zsh** by downloading the official install script
   and running it with `--unattended --keep-zshrc` (so it doesn't
   overwrite the `.zshrc` we ship). Idempotent — if `~/.oh-my-zsh`
@@ -31,6 +34,10 @@ Beyond linking the configs, the installer also:
 - Detects the **shell** via `lib/shell.sh` and renders
   `tmux/tmux.conf` so that `default-command` / `default-shell` point at
   the user's actual shell.
+- Prints the **`chsh` command** needed to make zsh the default login
+  shell, if it isn't already. We don't run chsh ourselves (it
+  requires sudo and a re-login), just print copy-paste-ready
+  instructions.
 
 All of the above respect `MONKEY_DRY_RUN` (set via `--dry-run`) and
 are safe to re-run.

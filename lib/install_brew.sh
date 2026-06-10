@@ -96,41 +96,41 @@ winget_install_if_missing() {
   winget install --id "$id" --accept-package-agreements --accept-source-agreements
 }
 
-# Install the full recommended set.
+# Install the full recommended set, driven by lib/packages.toml.
+# The manifest may not be present (legacy mode); monkey_packages_load
+# falls back to hardcoded defaults and warns in that case.
 install_recommended_stack() {
+  local manifest="$MONKEY_REPO/lib/packages.toml"
+
+  if [[ ! -r "$manifest" ]]; then
+    log_warn "Manifest missing: $manifest (using hardcoded fallback)"
+  fi
+  monkey_packages_load "$manifest" || true
+
   case "$MONKEY_OS" in
     macos|linux)
       ensure_brew || return 0
       log_step "Installing Homebrew packages"
-      brew_install_if_missing zsh
-      brew_install_if_missing starship
-      brew_install_if_missing tmux
-      brew_install_if_missing fzf
-      brew_install_if_missing zoxide
-      brew_install_if_missing atuin
-      brew_install_if_missing carapace
-      brew_install_if_missing fd
-      brew_install_if_missing bat
-      brew_install_if_missing eza
-      brew_install_if_missing lazygit
-      brew_install_if_missing neovim
-      brew_install_if_missing starship
-      # Iosevka Nerd Font is installed by lib/install_font.sh, not here,
-      # so that we also install it on distros without Linuxbrew.
-      brew_cask_install_if_missing wezterm
+      # shellcheck disable=SC2086  # word splitting is intentional here
+      for formula in $PKG_FORMULA; do
+        brew_install_if_missing "$formula"
+      done
+      if [[ -n "$PKG_CASK" ]]; then
+        # shellcheck disable=SC2086
+        for cask in $PKG_CASK; do
+          brew_cask_install_if_missing "$cask"
+        done
+      fi
+      # Note: Iosevka Nerd Font is installed by lib/install_font.sh, not
+      # here, so that we also install it on distros without Linuxbrew.
       ;;
     windows)
       ensure_winget || return 0
       log_step "Installing packages via winget"
-      winget_install_if_missing wez.wezterm          wezterm
-      winget_install_if_missing junegunn.fzf         fzf
-      winget_install_if_missing ajeetdsouza.zoxide   zoxide
-      winget_install_if_missing sharkdp.bat          bat
-      winget_install_if_missing sharkdp.fd           fd
-      winget_install_if_missing eza-community.eza    eza
-      winget_install_if_missing JesseDuffield.lazygit lazygit
-      winget_install_if_missing Neovim.Neovim        neovim
-      winget_install_if_missing JanDeDobbeleer.OhMyPosh oh-my-posh
+      # shellcheck disable=SC2086
+      for id in $PKG_ID; do
+        winget_install_if_missing "$id" "$id"
+      done
       ;;
   esac
 }

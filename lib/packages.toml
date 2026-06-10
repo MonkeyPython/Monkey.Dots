@@ -1,0 +1,35 @@
+# Monkey.Dots package manifest.
+#
+# This file lists every Homebrew formula / cask and every winget ID that
+# the installer provisions on a given platform. Edit it instead of
+# lib/install_brew.sh when you want to add, remove, or bump a package.
+#
+# Schema (deliberately tiny - the parser only understands this):
+#
+#   [macos]
+#   formula = "zsh starship tmux fzf zoxide atuin carapace fd bat eza lazygit neovim"
+#   cask    = "wezterm"
+#
+#   [linux]
+#   formula = "<same as macos, no casks>"
+#   cask    = ""
+#
+#   [windows]
+#   id      = "wez.wezterm junegunn.fzf ..."
+#
+# Lines starting with '#' are ignored. Empty values are fine.
+# For winget, the "id" is the publisher.application id printed by
+# 'winget search' (or visible in the Microsoft Store / winget-pkgs repo).
+
+[macos]
+formula = "zsh starship tmux fzf zoxide atuin carapace fd bat eza lazygit neovim"
+cask    = "wezterm"
+
+[linux]
+formula = "zsh starship tmux fzf zoxide atuin carapace fd bat eza lazygit neovim"
+cask    = "wezterm"
+
+[windows]
+# Each id is paired with a human-readable name in the README, but
+# here we only need the ids. Names come from the winget-pkgs repo.
+id      = "wez.wezterm junegunn.fzf ajeetdsouza.zoxide sharkdp.bat sharkdp.fd eza-community.eza JesseDuffield.lazygit Neovim.Neovim JanDeDobbeleer.OhMyPosh"

@@ -14,8 +14,11 @@ Además de linkear las configs, el instalador también:
   Fonts en Linux/WSL, cask de Homebrew en Windows nativo).
   Idempotente — si ya está presente, la salta.
 - Instala los **paquetes de Homebrew / IDs de winget** listados en
-  `lib/install_brew.sh` (`install_recommended_stack`). En macOS, Linux
-  y WSL se usa Homebrew. En Windows nativo, winget es el fallback.
+  `lib/packages.toml`. En macOS, Linux y WSL se usa Homebrew. En
+  Windows nativo, winget es el fallback. El manifest es la única
+  fuente de verdad sobre qué instalar — `lib/install_brew.sh` lo lee
+  en cada ejecución. Si el manifest no está, hay un fallback
+  hardcodeado (con warning).
 - Hace bootstrap de **Oh My Zsh** descargando el script oficial y
   corriéndolo con `--unattended --keep-zshrc` (así no sobreescribe
   el `.zshrc` que enviamos). Idempotente — si `~/.oh-my-zsh` ya
@@ -31,6 +34,10 @@ Además de linkear las configs, el instalador también:
 - Detecta el **shell** vía `lib/shell.sh` y renderiza `tmux/tmux.conf`
   para que `default-command` / `default-shell` apunten al shell real
   del usuario.
+- Imprime el **comando `chsh`** necesario para hacer zsh el login
+  shell por defecto, si no lo es ya. No corremos chsh nosotros
+  mismos (requiere sudo y re-login), solo imprimimos instrucciones
+  copy-paste-ready.
 
 Todo lo anterior respeta `MONKEY_DRY_RUN` (set con `--dry-run`) y es
 seguro de re-ejecutar.

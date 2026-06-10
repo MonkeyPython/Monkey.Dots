@@ -52,7 +52,7 @@ assert_file_content() {
 
 # --- 1. dry-run -----------------------------------------------------------
 
-printf '\n[1/15] dry-run\n'
+printf '\n[1/18] dry-run\n'
 # Snapshot existing files to confirm dry-run is fully non-destructive.
 snapshot_before="$(find "$TEST_HOME" -type f -o -type l | sort)"
 "$REPO_ROOT/install.sh" --no-brew --dry-run >/dev/null
@@ -63,7 +63,7 @@ pass "dry-run made no changes"
 
 # --- 2. real install ------------------------------------------------------
 
-printf '\n[2/15] real install\n'
+printf '\n[2/18] real install\n'
 "$REPO_ROOT/install.sh" --no-brew >/dev/null
 
 assert_symlink "$TEST_HOME/.config/wezterm"      "$REPO_ROOT/wezterm"
@@ -98,14 +98,14 @@ assert_file_content "$TEST_HOME/.config/starship.toml"        "MONKEY DOTS - STA
 
 # --- 3. idempotency -------------------------------------------------------
 
-printf '\n[3/15] idempotent re-run\n'
+printf '\n[3/18] idempotent re-run\n'
 "$REPO_ROOT/install.sh" --no-brew >/dev/null
 [[ -L "$TEST_HOME/.zshrc" ]] || fail "second run removed symlink"
 pass "second install run is idempotent"
 
 # --- 4. uninstall ---------------------------------------------------------
 
-printf '\n[4/15] uninstall\n'
+printf '\n[4/18] uninstall\n'
 "$REPO_ROOT/uninstall.sh" --keep-backup >/dev/null
 [[ ! -L "$TEST_HOME/.config/wezterm" ]] || fail "uninstall left wezterm symlink"
 [[ ! -L "$TEST_HOME/.zshrc" ]]           || fail "uninstall left .zshrc symlink"
@@ -113,7 +113,7 @@ pass "uninstall removed symlinks"
 
 # --- 5. font installer (dry-run, simulated Linux, no brew) ----------------
 
-printf '\n[5/15] font installer (dry-run)\n'
+printf '\n[5/18] font installer (dry-run)\n'
 FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
 # Simulate Linux-without-brew by clearing the brew variables and forcing OS.
 (
@@ -140,7 +140,7 @@ rm -rf "$FONT_TEST_HOME"
 
 # --- 6. font installer idempotency (real run, pre-seeded dir) -----------
 
-printf '\n[6/15] font installer idempotency (pre-seeded)\n'
+printf '\n[6/18] font installer idempotency (pre-seeded)\n'
 FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
 (
   export HOME="$FONT_TEST_HOME"
@@ -169,7 +169,7 @@ rm -rf "$FONT_TEST_HOME"
 
 # --- 7. Oh My Zsh installer (dry-run, simulated Linux) -------------------
 
-printf '\n[7/15] OMZ installer (dry-run)\n'
+printf '\n[7/18] OMZ installer (dry-run)\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -196,7 +196,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 8. OMZ installer idempotency (real run, pre-seeded dir) -------------
 
-printf '\n[8/15] OMZ installer idempotency (pre-seeded)\n'
+printf '\n[8/18] OMZ installer idempotency (pre-seeded)\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -225,7 +225,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 9. OMZ installer skips on Windows-native ----------------------------
 
-printf '\n[9/15] OMZ installer skips on Windows-native\n'
+printf '\n[9/18] OMZ installer skips on Windows-native\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -252,7 +252,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 10. TPM installer (dry-run, simulated Linux) ------------------------
 
-printf '\n[10/15] TPM installer (dry-run)\n'
+printf '\n[10/18] TPM installer (dry-run)\n'
 TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
 (
   export HOME="$TPM_TEST_HOME"
@@ -287,7 +287,7 @@ rm -rf "$TPM_TEST_HOME"
 
 # --- 11. TPM installer idempotency (real run, pre-seeded dir) ----------
 
-printf '\n[11/15] TPM installer idempotency (pre-seeded)\n'
+printf '\n[11/18] TPM installer idempotency (pre-seeded)\n'
 TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
 (
   export HOME="$TPM_TEST_HOME"
@@ -322,7 +322,7 @@ rm -rf "$TPM_TEST_HOME"
 
 # --- 12. TPM installer skips on Windows-native --------------------------
 
-printf '\n[12/15] TPM installer skips on Windows-native\n'
+printf '\n[12/18] TPM installer skips on Windows-native\n'
 TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
 (
   export HOME="$TPM_TEST_HOME"
@@ -355,7 +355,7 @@ rm -rf "$TPM_TEST_HOME"
 
 # --- 13. chsh helper: already-running zsh is a no-op ---------------------
 
-printf '\n[13/15] chsh helper skips when $SHELL is already zsh\n'
+printf '\n[13/18] chsh helper skips when $SHELL is already zsh\n'
 CHSH_TEST_HOME="$(mktemp -d -t monkey-chsh-smoke.XXXXXX)"
 (
   export HOME="$CHSH_TEST_HOME"
@@ -383,7 +383,7 @@ rm -rf "$CHSH_TEST_HOME"
 
 # --- 14. chsh helper: prints instructions when SHELL is not zsh --------
 
-printf '\n[14/15] chsh helper prints instructions when SHELL is not zsh\n'
+printf '\n[14/18] chsh helper prints instructions when SHELL is not zsh\n'
 CHSH_TEST_HOME="$(mktemp -d -t monkey-chsh-smoke.XXXXXX)"
 (
   export HOME="$CHSH_TEST_HOME"
@@ -418,7 +418,7 @@ rm -rf "$CHSH_TEST_HOME"
 
 # --- 15. chsh helper: skips on Windows-native ---------------------------
 
-printf '\n[15/15] chsh helper skips on Windows-native\n'
+printf '\n[15/18] chsh helper skips on Windows-native\n'
 CHSH_TEST_HOME="$(mktemp -d -t monkey-chsh-smoke.XXXXXX)"
 (
   export HOME="$CHSH_TEST_HOME"
@@ -441,5 +441,84 @@ CHSH_TEST_HOME="$(mktemp -d -t monkey-chsh-smoke.XXXXXX)"
   pass "chsh helper silent on Windows-native"
 )
 rm -rf "$CHSH_TEST_HOME"
+
+# --- 16. packages parser: load real manifest ---------------------------
+
+printf '\n[16/18] packages parser loads lib/packages.toml\n'
+(
+  export HOME="/tmp/monkey-pkg-test"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/packages_parser.sh"
+  # MONKEY_REPO is set by detect.sh sourcing (BASH_SOURCE of the test,
+  # not the parser), so simulate it.
+  MONKEY_REPO="$REPO_ROOT"
+  monkey_packages_load "$REPO_ROOT/lib/packages.toml" 2>/dev/null
+  [[ -n "$PKG_FORMULA" ]] || fail "PKG_FORMULA empty after load"
+  [[ -n "$PKG_CASK" ]]    || fail "PKG_CASK empty after load"
+  [[ -n "$PKG_ID" ]]      || fail "PKG_ID empty after load"
+  # Sanity: wezterm must be in the cask list
+  if [[ "$PKG_CASK" != *"wezterm"* ]]; then
+    fail "PKG_CASK does not contain wezterm: $PKG_CASK"
+  fi
+  # Sanity: wez.wezterm must be in the id list
+  if [[ "$PKG_ID" != *"wez.wezterm"* ]]; then
+    fail "PKG_ID does not contain wez.wezterm: $PKG_ID"
+  fi
+  pass "manifest loaded: ${#PKG_FORMULA} chars formula, ${#PKG_ID} chars id"
+)
+rm -rf "/tmp/monkey-pkg-test"
+
+# --- 17. packages parser: field-by-field reader ------------------------
+
+printf '\n[17/18] packages parser reads individual fields\n'
+(
+  export HOME="/tmp/monkey-pkg-test"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/packages_parser.sh"
+  MONKEY_REPO="$REPO_ROOT"
+  f="$(monkey_packages_field macos formula)"
+  [[ -n "$f" ]] || fail "macos.formula returned empty"
+  if [[ "$f" != *"starship"* ]]; then
+    fail "macos.formula missing starship: $f"
+  fi
+  cask="$(monkey_packages_field macos cask)"
+  [[ "$cask" == "wezterm" ]] || fail "macos.cask expected 'wezterm', got '$cask'"
+  id="$(monkey_packages_field windows id)"
+  [[ "$id" == *"Neovim.Neovim"* ]] || fail "windows.id missing Neovim.Neovim: $id"
+  pass "field reader works for all three sections"
+)
+rm -rf "/tmp/monkey-pkg-test"
+
+# --- 18. packages parser: fallback when manifest missing ---------------
+
+printf '\n[18/18] packages parser falls back to hardcoded defaults\n'
+(
+  set +e  # this subtest intentionally inspects a non-zero return
+  export HOME="/tmp/monkey-pkg-test"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/packages_parser.sh"
+  MONKEY_REPO="$REPO_ROOT"
+  monkey_packages_load "/tmp/does-not-exist.toml" 2>/dev/null
+  rc=$?
+  [[ $rc -ne 0 ]] || fail "missing manifest should return non-zero"
+  # But globals should still be populated
+  [[ -n "$PKG_FORMULA" ]] || fail "fallback PKG_FORMULA empty"
+  [[ -n "$PKG_CASK" ]]    || fail "fallback PKG_CASK empty"
+  [[ -n "$PKG_ID" ]]      || fail "fallback PKG_ID empty"
+  pass "fallback populated globals when manifest missing"
+)
+rm -rf "/tmp/monkey-pkg-test"
 
 printf '\n\033[32mAll smoke tests passed.\033[0m\n'

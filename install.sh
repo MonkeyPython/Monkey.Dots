@@ -25,6 +25,8 @@ source "$SCRIPT_DIR/lib/backup.sh"
 source "$SCRIPT_DIR/lib/symlink.sh"
 # shellcheck source=lib/install_brew.sh
 source "$SCRIPT_DIR/lib/install_brew.sh"
+# shellcheck source=lib/packages_parser.sh
+source "$SCRIPT_DIR/lib/packages_parser.sh"
 # shellcheck source=lib/shell.sh
 source "$SCRIPT_DIR/lib/shell.sh"
 # shellcheck source=lib/install_font.sh
