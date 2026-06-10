@@ -1,0 +1,68 @@
+# Monkey.Dots - Git aliases and sensible defaults.
+# Symlinked to ~/.gitconfig by the installer.
+# Your user.name / user.email are NOT set here on purpose:
+# commit them locally with:
+#   git config --global user.name "Your Name"
+#   git config --global user.email "you@example.com"
+
+[user]
+	useConfigOnly = true
+
+[init]
+	defaultBranch = main
+
+[core]
+	editor = nvim
+	autocrlf = input
+	pager = delta
+	quotePath = false
+
+[delta]
+	navigate = true
+	light = false
+	line-numbers = true
+	side-by-side = false
+
+[pull]
+	ff = only
+	rebase = true
+
+[push]
+	autoSetupRemote = true
+
+[fetch]
+	prune = true
+
+[rerere]
+	enabled = true
+
+[help]
+	autocorrect = 10
+
+[color]
+	ui = auto
+
+[alias]
+	# Short status
+	st       = status -sb
+	# Pretty log
+	lg       = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
+	# Top-level only
+	lt       = log --oneline --decorate -20
+	# Amend last commit
+	amend    = commit --amend --no-edit
+	# Unstage
+	unstage  = reset HEAD --
+	# Diff staged
+	ds       = diff --staged
+	# Switch / restore shorthand
+	co       = checkout
+	br       = branch
+	# Branches sorted by last commit
+	brs      = branch --sort=-committerdate --format='%(HEAD) %(color:yellow)%(committerdate:short)%(color:reset) %(color:cyan)%(refname:short)%(color:reset)'
+	# Stash with message
+	ss       = stash save
+	sp       = stash pop
+	sl       = stash list
+	# Find by content (uses rg if present)
+	g        = grep --break --heading --line-number
