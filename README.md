@@ -5,6 +5,24 @@
 
 📄 Read this in: **English** | [Español](README.es.md)
 
+## What gets installed
+
+Beyond linking the configs, the installer also:
+
+- Installs the **Iosevka Term Nerd Font** system-wide (Homebrew cask on
+  macOS, direct download from Nerd Fonts GitHub releases on Linux/WSL,
+  Homebrew cask on Windows-native). Idempotent — if it's already
+  present, it's skipped.
+- Installs the **Homebrew packages / winget IDs** listed in
+  `lib/install_brew.sh` (`install_recommended_stack`). On macOS, Linux
+  and WSL, Homebrew is used. On Windows-native, winget is the fallback.
+- Detects the **shell** via `lib/shell.sh` and renders
+  `tmux/tmux.conf` so that `default-command` / `default-shell` point at
+  the user's actual shell.
+
+All of the above respect `MONKEY_DRY_RUN` (set via `--dry-run`) and
+are safe to re-run.
+
 ## What is this?
 
 A minimal, opinionated dotfiles manager that gives you the same terminal,

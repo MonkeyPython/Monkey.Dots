@@ -20,6 +20,7 @@ No Neovim, no TUI installer, no Vim Trainer.
 | Change the palette | `wezterm/wezterm.lua` (ANSI table) + `starship/starship.toml` (`[palettes.monkey]`) |
 | Add a new OS / platform | `lib/detect.sh` (`detect_os`) + `lib/install_brew.sh` |
 | Tweak tmux config | `tmux/tmux.conf` (mirrored from upstream) + `lib/shell.sh` (renders placeholder) |
+| Bump Iosevka Nerd Font version | `lib/install_font.sh` (`FONT_FALLBACK_VERSION`, `install_via_download`) |
 | Add an alias / env var | `zsh/.zshrc` (mirror the existing detection blocks) |
 | Add a test | `tests/install_smoke.sh` (assert helpers: `assert_symlink`, `assert_file_content`) |
 

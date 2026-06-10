@@ -27,6 +27,8 @@ source "$SCRIPT_DIR/lib/symlink.sh"
 source "$SCRIPT_DIR/lib/install_brew.sh"
 # shellcheck source=lib/shell.sh
 source "$SCRIPT_DIR/lib/shell.sh"
+# shellcheck source=lib/install_font.sh
+source "$SCRIPT_DIR/lib/install_font.sh"
 
 # --- Defaults & flags ------------------------------------------------------
 
@@ -238,6 +240,11 @@ fi
 if [[ "$MONKEY_INSTALL_BREW" == "1" ]]; then
   install_recommended_stack
 fi
+
+# Font install is independent of brew: we always try to get Iosevka Term
+# Nerd Font, because every other config (wezterm, starship, tmux theme)
+# assumes it. This call is idempotent and respects $MONKEY_DRY_RUN.
+monkey_install_iosevka
 
 plan_install
 

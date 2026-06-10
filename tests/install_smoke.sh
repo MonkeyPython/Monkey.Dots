@@ -111,4 +111,60 @@ printf '\n[4/4] uninstall\n'
 [[ ! -L "$TEST_HOME/.zshrc" ]]           || fail "uninstall left .zshrc symlink"
 pass "uninstall removed symlinks"
 
+# --- 5. font installer (dry-run, simulated Linux, no brew) ----------------
+
+printf '\n[5/5] font installer (dry-run)\n'
+FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
+# Simulate Linux-without-brew by clearing the brew variables and forcing OS.
+(
+  export HOME="$FONT_TEST_HOME"
+  export XDG_CONFIG_HOME="$FONT_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=1
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_font.sh"
+  MONKEY_OS="linux"
+  MONKEY_OS_NAME="Linux (simulated)"
+  MONKEY_HAS_BREW=0
+  # dry-run should NOT create any files
+  monkey_install_iosevka 2>&1 || true
+  if [[ -d "$FONT_TEST_HOME/.local/share/fonts" ]]; then
+    fail "dry-run created fonts dir"
+  fi
+  pass "font installer dry-run is non-destructive"
+)
+rm -rf "$FONT_TEST_HOME"
+
+# --- 6. font installer idempotency (real run, pre-seeded dir) -----------
+
+printf '\n[6/6] font installer idempotency (pre-seeded)\n'
+FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
+(
+  export HOME="$FONT_TEST_HOME"
+  export XDG_CONFIG_HOME="$FONT_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=0
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_font.sh"
+  MONKEY_OS="linux"
+  # shellcheck disable=SC2034
+  MONKEY_OS_NAME="Linux (simulated)"
+  MONKEY_HAS_BREW=0
+  # Pre-seed: pretend the font is already installed
+  mkdir -p "$FONT_TEST_HOME/.local/share/fonts"
+  touch "$FONT_TEST_HOME/.local/share/fonts/IosevkaTermNerdFont-Regular.ttf"
+  monkey_install_iosevka 2>&1
+  # The pre-seeded file must still be the only font file (no re-download).
+  count=$(find "$FONT_TEST_HOME/.local/share/fonts" -type f | wc -l | tr -d ' ')
+  [[ "$count" == "1" ]] || fail "idempotent run modified the seeded font dir"
+  pass "font installer skips when already installed"
+)
+rm -rf "$FONT_TEST_HOME"
+
 printf '\n\033[32mAll smoke tests passed.\033[0m\n'

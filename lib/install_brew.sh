@@ -115,7 +115,8 @@ install_recommended_stack() {
       brew_install_if_missing lazygit
       brew_install_if_missing neovim
       brew_install_if_missing starship
-      brew_cask_install_if_missing font-iosevka-term-nerd-font
+      # Iosevka Nerd Font is installed by lib/install_font.sh, not here,
+      # so that we also install it on distros without Linuxbrew.
       brew_cask_install_if_missing wezterm
       ;;
     windows)
