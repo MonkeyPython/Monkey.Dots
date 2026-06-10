@@ -52,7 +52,7 @@ assert_file_content() {
 
 # --- 1. dry-run -----------------------------------------------------------
 
-printf '\n[1/12] dry-run\n'
+printf '\n[1/15] dry-run\n'
 # Snapshot existing files to confirm dry-run is fully non-destructive.
 snapshot_before="$(find "$TEST_HOME" -type f -o -type l | sort)"
 "$REPO_ROOT/install.sh" --no-brew --dry-run >/dev/null
@@ -63,7 +63,7 @@ pass "dry-run made no changes"
 
 # --- 2. real install ------------------------------------------------------
 
-printf '\n[2/12] real install\n'
+printf '\n[2/15] real install\n'
 "$REPO_ROOT/install.sh" --no-brew >/dev/null
 
 assert_symlink "$TEST_HOME/.config/wezterm"      "$REPO_ROOT/wezterm"
@@ -98,14 +98,14 @@ assert_file_content "$TEST_HOME/.config/starship.toml"        "MONKEY DOTS - STA
 
 # --- 3. idempotency -------------------------------------------------------
 
-printf '\n[3/12] idempotent re-run\n'
+printf '\n[3/15] idempotent re-run\n'
 "$REPO_ROOT/install.sh" --no-brew >/dev/null
 [[ -L "$TEST_HOME/.zshrc" ]] || fail "second run removed symlink"
 pass "second install run is idempotent"
 
 # --- 4. uninstall ---------------------------------------------------------
 
-printf '\n[4/12] uninstall\n'
+printf '\n[4/15] uninstall\n'
 "$REPO_ROOT/uninstall.sh" --keep-backup >/dev/null
 [[ ! -L "$TEST_HOME/.config/wezterm" ]] || fail "uninstall left wezterm symlink"
 [[ ! -L "$TEST_HOME/.zshrc" ]]           || fail "uninstall left .zshrc symlink"
@@ -113,7 +113,7 @@ pass "uninstall removed symlinks"
 
 # --- 5. font installer (dry-run, simulated Linux, no brew) ----------------
 
-printf '\n[5/12] font installer (dry-run)\n'
+printf '\n[5/15] font installer (dry-run)\n'
 FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
 # Simulate Linux-without-brew by clearing the brew variables and forcing OS.
 (
@@ -140,7 +140,7 @@ rm -rf "$FONT_TEST_HOME"
 
 # --- 6. font installer idempotency (real run, pre-seeded dir) -----------
 
-printf '\n[6/12] font installer idempotency (pre-seeded)\n'
+printf '\n[6/15] font installer idempotency (pre-seeded)\n'
 FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
 (
   export HOME="$FONT_TEST_HOME"
@@ -169,7 +169,7 @@ rm -rf "$FONT_TEST_HOME"
 
 # --- 7. Oh My Zsh installer (dry-run, simulated Linux) -------------------
 
-printf '\n[7/12] OMZ installer (dry-run)\n'
+printf '\n[7/15] OMZ installer (dry-run)\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -196,7 +196,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 8. OMZ installer idempotency (real run, pre-seeded dir) -------------
 
-printf '\n[8/12] OMZ installer idempotency (pre-seeded)\n'
+printf '\n[8/15] OMZ installer idempotency (pre-seeded)\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -225,7 +225,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 9. OMZ installer skips on Windows-native ----------------------------
 
-printf '\n[9/12] OMZ installer skips on Windows-native\n'
+printf '\n[9/15] OMZ installer skips on Windows-native\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -252,7 +252,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 10. TPM installer (dry-run, simulated Linux) ------------------------
 
-printf '\n[10/12] TPM installer (dry-run)\n'
+printf '\n[10/15] TPM installer (dry-run)\n'
 TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
 (
   export HOME="$TPM_TEST_HOME"
@@ -287,7 +287,7 @@ rm -rf "$TPM_TEST_HOME"
 
 # --- 11. TPM installer idempotency (real run, pre-seeded dir) ----------
 
-printf '\n[11/12] TPM installer idempotency (pre-seeded)\n'
+printf '\n[11/15] TPM installer idempotency (pre-seeded)\n'
 TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
 (
   export HOME="$TPM_TEST_HOME"
@@ -322,7 +322,7 @@ rm -rf "$TPM_TEST_HOME"
 
 # --- 12. TPM installer skips on Windows-native --------------------------
 
-printf '\n[12/12] TPM installer skips on Windows-native\n'
+printf '\n[12/15] TPM installer skips on Windows-native\n'
 TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
 (
   export HOME="$TPM_TEST_HOME"
@@ -352,5 +352,94 @@ SH
   pass "TPM installer skipped on Windows-native"
 )
 rm -rf "$TPM_TEST_HOME"
+
+# --- 13. chsh helper: already-running zsh is a no-op ---------------------
+
+printf '\n[13/15] chsh helper skips when $SHELL is already zsh\n'
+CHSH_TEST_HOME="$(mktemp -d -t monkey-chsh-smoke.XXXXXX)"
+(
+  export HOME="$CHSH_TEST_HOME"
+  export XDG_CONFIG_HOME="$CHSH_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=0
+  # Pretend we're already in zsh
+  export SHELL="/opt/homebrew/bin/zsh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_chsh.sh"
+  MONKEY_OS="macos"
+  # shellcheck disable=SC2034
+  MONKEY_OS_NAME="macOS (simulated)"
+  out="$(monkey_offer_set_default_shell 2>&1)"
+  # Should not have printed chsh instructions
+  if grep -q 'chsh -s' <<< "$out"; then
+    fail "chsh helper printed instructions even though SHELL is already zsh"
+  fi
+  pass "chsh helper skipped when SHELL is zsh"
+)
+rm -rf "$CHSH_TEST_HOME"
+
+# --- 14. chsh helper: prints instructions when SHELL is not zsh --------
+
+printf '\n[14/15] chsh helper prints instructions when SHELL is not zsh\n'
+CHSH_TEST_HOME="$(mktemp -d -t monkey-chsh-smoke.XXXXXX)"
+(
+  export HOME="$CHSH_TEST_HOME"
+  export XDG_CONFIG_HOME="$CHSH_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=0
+  export SHELL="/bin/bash"
+  # Put a fake zsh on PATH so zsh_path() resolves
+  mkdir -p "$CHSH_TEST_HOME/bin"
+  cat > "$CHSH_TEST_HOME/bin/zsh" <<'SH'
+#!/usr/bin/env bash
+exec /bin/bash "$@"
+SH
+  chmod +x "$CHSH_TEST_HOME/bin/zsh"
+  export PATH="$CHSH_TEST_HOME/bin:$PATH"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_chsh.sh"
+  MONKEY_OS="macos"
+  # shellcheck disable=SC2034
+  MONKEY_OS_NAME="macOS (simulated)"
+  out="$(monkey_offer_set_default_shell 2>&1)"
+  # Should have printed chsh instructions
+  if ! grep -q 'chsh -s' <<< "$out"; then
+    fail "chsh helper did not print chsh instructions when SHELL was bash"
+  fi
+  pass "chsh helper printed instructions"
+)
+rm -rf "$CHSH_TEST_HOME"
+
+# --- 15. chsh helper: skips on Windows-native ---------------------------
+
+printf '\n[15/15] chsh helper skips on Windows-native\n'
+CHSH_TEST_HOME="$(mktemp -d -t monkey-chsh-smoke.XXXXXX)"
+(
+  export HOME="$CHSH_TEST_HOME"
+  export XDG_CONFIG_HOME="$CHSH_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=0
+  export SHELL="/bin/bash"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_chsh.sh"
+  MONKEY_OS="windows"
+  # shellcheck disable=SC2034
+  MONKEY_OS_NAME="Windows (simulated)"
+  out="$(monkey_offer_set_default_shell 2>&1)"
+  if [[ -n "$out" ]]; then
+    fail "chsh helper produced output on Windows-native: $out"
+  fi
+  pass "chsh helper silent on Windows-native"
+)
+rm -rf "$CHSH_TEST_HOME"
 
 printf '\n\033[32mAll smoke tests passed.\033[0m\n'

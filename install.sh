@@ -33,6 +33,8 @@ source "$SCRIPT_DIR/lib/install_font.sh"
 source "$SCRIPT_DIR/lib/install_omz.sh"
 # shellcheck source=lib/install_tpm.sh
 source "$SCRIPT_DIR/lib/install_tpm.sh"
+# shellcheck source=lib/install_chsh.sh
+source "$SCRIPT_DIR/lib/install_chsh.sh"
 
 # --- Defaults & flags ------------------------------------------------------
 
@@ -262,6 +264,11 @@ log_step "Done"
 # TPM bootstrap runs AFTER the tmux.conf is rendered, because the
 # headless plugin install sources it. Idempotent and OS-aware.
 monkey_install_tpm
+
+# Final UX nudge: if the user's login shell isn't zsh, print the
+# chsh command they need to run. We don't do it ourselves (sudo +
+# re-login = user decision).
+monkey_offer_set_default_shell
 
 log_ok "Restart your terminal (or run: exec zsh) to load the new config."
 
