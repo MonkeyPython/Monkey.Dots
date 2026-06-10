@@ -167,4 +167,87 @@ FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
 )
 rm -rf "$FONT_TEST_HOME"
 
+# --- 7. Oh My Zsh installer (dry-run, simulated Linux) -------------------
+
+printf '\n[7/8] OMZ installer (dry-run)\n'
+OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
+(
+  export HOME="$OMZ_TEST_HOME"
+  export XDG_CONFIG_HOME="$OMZ_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=1
+  unset ZSH
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_omz.sh"
+  MONKEY_OS="linux"
+  # shellcheck disable=SC2034
+  MONKEY_OS_NAME="Linux (simulated)"
+  monkey_install_oh_my_zsh 2>&1
+  # dry-run must not create ~/.oh-my-zsh
+  if [[ -d "$OMZ_TEST_HOME/.oh-my-zsh" ]]; then
+    fail "dry-run created ~/.oh-my-zsh"
+  fi
+  pass "OMZ installer dry-run is non-destructive"
+)
+rm -rf "$OMZ_TEST_HOME"
+
+# --- 8. OMZ installer idempotency (real run, pre-seeded dir) -------------
+
+printf '\n[8/8] OMZ installer idempotency (pre-seeded)\n'
+OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
+(
+  export HOME="$OMZ_TEST_HOME"
+  export XDG_CONFIG_HOME="$OMZ_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=0
+  unset ZSH
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_omz.sh"
+  MONKEY_OS="linux"
+  # shellcheck disable=SC2034
+  MONKEY_OS_NAME="Linux (simulated)"
+  # Pre-seed: pretend OMZ is already installed
+  mkdir -p "$OMZ_TEST_HOME/.oh-my-zsh"
+  touch "$OMZ_TEST_HOME/.oh-my-zsh/oh-my-zsh.sh"
+  monkey_install_oh_my_zsh 2>&1
+  # The pre-seeded file must still be the only file there.
+  count=$(find "$OMZ_TEST_HOME/.oh-my-zsh" -type f | wc -l | tr -d ' ')
+  [[ "$count" == "1" ]] || fail "idempotent OMZ run modified the seeded dir"
+  pass "OMZ installer skips when already installed"
+)
+rm -rf "$OMZ_TEST_HOME"
+
+# --- 9. OMZ installer skips on Windows-native ----------------------------
+
+printf '\n[9/9] OMZ installer skips on Windows-native\n'
+OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
+(
+  export HOME="$OMZ_TEST_HOME"
+  export XDG_CONFIG_HOME="$OMZ_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=0
+  unset ZSH
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_omz.sh"
+  MONKEY_OS="windows"
+  # shellcheck disable=SC2034
+  MONKEY_OS_NAME="Windows (simulated)"
+  monkey_install_oh_my_zsh 2>&1
+  # Windows must not have OMZ installed
+  if [[ -d "$OMZ_TEST_HOME/.oh-my-zsh" ]]; then
+    fail "OMZ installer ran on Windows-native"
+  fi
+  pass "OMZ installer skipped on Windows-native"
+)
+rm -rf "$OMZ_TEST_HOME"
+
 printf '\n\033[32mAll smoke tests passed.\033[0m\n'

@@ -92,7 +92,14 @@ plugins=(
   command-not-found
 )
 
-source $ZSH/oh-my-zsh.sh
+# Oh My Zsh is installed by the installer. If for some reason it's
+# missing (e.g. --no-brew on a fresh box, or Windows-native), skip
+# the source and continue with starship/fzf/zoxide/atuin.
+if [[ -f "$ZSH/oh-my-zsh.sh" ]]; then
+    source "$ZSH/oh-my-zsh.sh"
+else
+    print -r -- "[monkey] $ZSH/oh-my-zsh.sh not found; running with starship-only" >&2
+fi
 
 export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense'
 zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'

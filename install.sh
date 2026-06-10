@@ -29,6 +29,8 @@ source "$SCRIPT_DIR/lib/install_brew.sh"
 source "$SCRIPT_DIR/lib/shell.sh"
 # shellcheck source=lib/install_font.sh
 source "$SCRIPT_DIR/lib/install_font.sh"
+# shellcheck source=lib/install_omz.sh
+source "$SCRIPT_DIR/lib/install_omz.sh"
 
 # --- Defaults & flags ------------------------------------------------------
 
@@ -240,6 +242,11 @@ fi
 if [[ "$MONKEY_INSTALL_BREW" == "1" ]]; then
   install_recommended_stack
 fi
+
+# Oh My Zsh bootstrap. Needs zsh on PATH (from brew above) but is
+# idempotent: if ~/.oh-my-zsh already exists, it's skipped. Skipped
+# entirely on Windows-native where it would break the .zshrc.
+monkey_install_oh_my_zsh
 
 # Font install is independent of brew: we always try to get Iosevka Term
 # Nerd Font, because every other config (wezterm, starship, tmux theme)

@@ -16,6 +16,11 @@ Además de linkear las configs, el instalador también:
 - Instala los **paquetes de Homebrew / IDs de winget** listados en
   `lib/install_brew.sh` (`install_recommended_stack`). En macOS, Linux
   y WSL se usa Homebrew. En Windows nativo, winget es el fallback.
+- Hace bootstrap de **Oh My Zsh** descargando el script oficial y
+  corriéndolo con `--unattended --keep-zshrc` (así no sobreescribe
+  el `.zshrc` que enviamos). Idempotente — si `~/.oh-my-zsh` ya
+  existe, la salta. Se salta en Windows nativo donde OMZ es frágil.
+  El `.zshrc` enviado tiene un guard por si OMZ no está.
 - Detecta el **shell** vía `lib/shell.sh` y renderiza `tmux/tmux.conf`
   para que `default-command` / `default-shell` apunten al shell real
   del usuario.
