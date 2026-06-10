@@ -31,6 +31,8 @@ source "$SCRIPT_DIR/lib/shell.sh"
 source "$SCRIPT_DIR/lib/install_font.sh"
 # shellcheck source=lib/install_omz.sh
 source "$SCRIPT_DIR/lib/install_omz.sh"
+# shellcheck source=lib/install_tpm.sh
+source "$SCRIPT_DIR/lib/install_tpm.sh"
 
 # --- Defaults & flags ------------------------------------------------------
 
@@ -256,6 +258,11 @@ monkey_install_iosevka
 plan_install
 
 log_step "Done"
+
+# TPM bootstrap runs AFTER the tmux.conf is rendered, because the
+# headless plugin install sources it. Idempotent and OS-aware.
+monkey_install_tpm
+
 log_ok "Restart your terminal (or run: exec zsh) to load the new config."
 
 if [[ "$MONKEY_HAS_TPM" != "1" ]]; then

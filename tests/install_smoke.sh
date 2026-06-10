@@ -52,7 +52,7 @@ assert_file_content() {
 
 # --- 1. dry-run -----------------------------------------------------------
 
-printf '\n[1/4] dry-run\n'
+printf '\n[1/12] dry-run\n'
 # Snapshot existing files to confirm dry-run is fully non-destructive.
 snapshot_before="$(find "$TEST_HOME" -type f -o -type l | sort)"
 "$REPO_ROOT/install.sh" --no-brew --dry-run >/dev/null
@@ -63,7 +63,7 @@ pass "dry-run made no changes"
 
 # --- 2. real install ------------------------------------------------------
 
-printf '\n[2/4] real install\n'
+printf '\n[2/12] real install\n'
 "$REPO_ROOT/install.sh" --no-brew >/dev/null
 
 assert_symlink "$TEST_HOME/.config/wezterm"      "$REPO_ROOT/wezterm"
@@ -98,14 +98,14 @@ assert_file_content "$TEST_HOME/.config/starship.toml"        "MONKEY DOTS - STA
 
 # --- 3. idempotency -------------------------------------------------------
 
-printf '\n[3/4] idempotent re-run\n'
+printf '\n[3/12] idempotent re-run\n'
 "$REPO_ROOT/install.sh" --no-brew >/dev/null
 [[ -L "$TEST_HOME/.zshrc" ]] || fail "second run removed symlink"
 pass "second install run is idempotent"
 
 # --- 4. uninstall ---------------------------------------------------------
 
-printf '\n[4/4] uninstall\n'
+printf '\n[4/12] uninstall\n'
 "$REPO_ROOT/uninstall.sh" --keep-backup >/dev/null
 [[ ! -L "$TEST_HOME/.config/wezterm" ]] || fail "uninstall left wezterm symlink"
 [[ ! -L "$TEST_HOME/.zshrc" ]]           || fail "uninstall left .zshrc symlink"
@@ -113,7 +113,7 @@ pass "uninstall removed symlinks"
 
 # --- 5. font installer (dry-run, simulated Linux, no brew) ----------------
 
-printf '\n[5/5] font installer (dry-run)\n'
+printf '\n[5/12] font installer (dry-run)\n'
 FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
 # Simulate Linux-without-brew by clearing the brew variables and forcing OS.
 (
@@ -140,7 +140,7 @@ rm -rf "$FONT_TEST_HOME"
 
 # --- 6. font installer idempotency (real run, pre-seeded dir) -----------
 
-printf '\n[6/6] font installer idempotency (pre-seeded)\n'
+printf '\n[6/12] font installer idempotency (pre-seeded)\n'
 FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
 (
   export HOME="$FONT_TEST_HOME"
@@ -169,7 +169,7 @@ rm -rf "$FONT_TEST_HOME"
 
 # --- 7. Oh My Zsh installer (dry-run, simulated Linux) -------------------
 
-printf '\n[7/8] OMZ installer (dry-run)\n'
+printf '\n[7/12] OMZ installer (dry-run)\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -196,7 +196,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 8. OMZ installer idempotency (real run, pre-seeded dir) -------------
 
-printf '\n[8/8] OMZ installer idempotency (pre-seeded)\n'
+printf '\n[8/12] OMZ installer idempotency (pre-seeded)\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -225,7 +225,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 9. OMZ installer skips on Windows-native ----------------------------
 
-printf '\n[9/9] OMZ installer skips on Windows-native\n'
+printf '\n[9/12] OMZ installer skips on Windows-native\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -249,5 +249,108 @@ OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
   pass "OMZ installer skipped on Windows-native"
 )
 rm -rf "$OMZ_TEST_HOME"
+
+# --- 10. TPM installer (dry-run, simulated Linux) ------------------------
+
+printf '\n[10/12] TPM installer (dry-run)\n'
+TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
+(
+  export HOME="$TPM_TEST_HOME"
+  export XDG_CONFIG_HOME="$TPM_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=1
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_tpm.sh"
+  MONKEY_OS="linux"
+  # shellcheck disable=SC2034
+  MONKEY_OS_NAME="Linux (simulated)"
+  # Pretend tmux is available so we get past the no-tmux check
+  # and into the dry-run path.
+  PATH="$TPM_TEST_HOME/bin:$PATH"
+  mkdir -p "$TPM_TEST_HOME/bin"
+  cat > "$TPM_TEST_HOME/bin/tmux" <<'SH'
+#!/usr/bin/env bash
+echo "[fake-tmux] $*" >&2
+SH
+  chmod +x "$TPM_TEST_HOME/bin/tmux"
+  monkey_install_tpm 2>&1
+  # dry-run must not create ~/.tmux/plugins/tpm
+  if [[ -d "$TPM_TEST_HOME/.tmux/plugins/tpm" ]]; then
+    fail "dry-run created ~/.tmux/plugins/tpm"
+  fi
+  pass "TPM installer dry-run is non-destructive"
+)
+rm -rf "$TPM_TEST_HOME"
+
+# --- 11. TPM installer idempotency (real run, pre-seeded dir) ----------
+
+printf '\n[11/12] TPM installer idempotency (pre-seeded)\n'
+TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
+(
+  export HOME="$TPM_TEST_HOME"
+  export XDG_CONFIG_HOME="$TPM_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=0
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_tpm.sh"
+  MONKEY_OS="linux"
+  # shellcheck disable=SC2034
+  MONKEY_OS_NAME="Linux (simulated)"
+  PATH="$TPM_TEST_HOME/bin:$PATH"
+  mkdir -p "$TPM_TEST_HOME/bin"
+  cat > "$TPM_TEST_HOME/bin/tmux" <<'SH'
+#!/usr/bin/env bash
+echo "[fake-tmux] $*" >&2
+SH
+  chmod +x "$TPM_TEST_HOME/bin/tmux"
+  # Pre-seed TPM
+  mkdir -p "$TPM_TEST_HOME/.tmux/plugins/tpm"
+  touch "$TPM_TEST_HOME/.tmux/plugins/tpm/tpm"
+  monkey_install_tpm 2>&1
+  # The pre-seeded file must still be the only file there
+  count=$(find "$TPM_TEST_HOME/.tmux/plugins/tpm" -type f | wc -l | tr -d ' ')
+  [[ "$count" == "1" ]] || fail "idempotent TPM run modified the seeded dir"
+  pass "TPM installer skips when already installed"
+)
+rm -rf "$TPM_TEST_HOME"
+
+# --- 12. TPM installer skips on Windows-native --------------------------
+
+printf '\n[12/12] TPM installer skips on Windows-native\n'
+TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
+(
+  export HOME="$TPM_TEST_HOME"
+  export XDG_CONFIG_HOME="$TPM_TEST_HOME/.config"
+  export MONKEY_DRY_RUN=0
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/log.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$REPO_ROOT/lib/install_tpm.sh"
+  MONKEY_OS="windows"
+  # shellcheck disable=SC2034
+  MONKEY_OS_NAME="Windows (simulated)"
+  # Even if a fake tmux is on PATH, Windows must skip
+  PATH="$TPM_TEST_HOME/bin:$PATH"
+  mkdir -p "$TPM_TEST_HOME/bin"
+  cat > "$TPM_TEST_HOME/bin/tmux" <<'SH'
+#!/usr/bin/env bash
+echo "[fake-tmux] $*" >&2
+SH
+  chmod +x "$TPM_TEST_HOME/bin/tmux"
+  monkey_install_tpm 2>&1
+  if [[ -d "$TPM_TEST_HOME/.tmux/plugins/tpm" ]]; then
+    fail "TPM installer ran on Windows-native"
+  fi
+  pass "TPM installer skipped on Windows-native"
+)
+rm -rf "$TPM_TEST_HOME"
 
 printf '\n\033[32mAll smoke tests passed.\033[0m\n'

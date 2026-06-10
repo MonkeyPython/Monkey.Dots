@@ -21,6 +21,13 @@ Además de linkear las configs, el instalador también:
   el `.zshrc` que enviamos). Idempotente — si `~/.oh-my-zsh` ya
   existe, la salta. Se salta en Windows nativo donde OMZ es frágil.
   El `.zshrc` enviado tiene un guard por si OMZ no está.
+- Hace bootstrap de **TPM** (Tmux Plugin Manager) clonándolo con
+  `git clone` a `~/.tmux/plugins/tpm`, y luego corre
+  `tpm install_plugins` headless en una sesión tmux detached de un
+  solo uso que sources el `tmux.conf` renderizado. Es best-effort:
+  si falla, el fallback es abrir tmux y pulsar `prefix + I` a
+  mano. Idempotente. Se salta en Windows nativo (no hay tmux
+  nativo).
 - Detecta el **shell** vía `lib/shell.sh` y renderiza `tmux/tmux.conf`
   para que `default-command` / `default-shell` apunten al shell real
   del usuario.
@@ -135,8 +142,11 @@ configs, cero caveats.
 
 ## Después de instalar
 
-1. **Plugins de Tmux**: abre tmux y pulsa `prefix + I` (I mayúscula).
-   TPM clonará Kanagawa, vim-tmux-navigator, tmux-resurrect, etc.
+1. **Plugins de Tmux**: el instalador clona TPM y corre
+   `install_plugins` headless. Si ese paso falla (p.ej. tmux no puede
+   hacer fork en tu entorno), abre tmux y pulsa `prefix + I` (I
+   mayúscula) — TPM clonará Kanagawa, vim-tmux-navigator,
+   tmux-resurrect, etc.
 2. **Oh My Zsh**: el instalador ofrece instalarlo si no está. Sin él,
    el `.zshrc` funciona en modo degradado (sin autosuggestions / syntax
    highlighting, pero starship y fzf siguen OK).

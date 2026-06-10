@@ -22,6 +22,12 @@ Beyond linking the configs, the installer also:
   already exists, it's skipped. Skipped on Windows-native where OMZ
   is fragile. The bundled `.zshrc` has a guard so it works even if
   OMZ is absent.
+- Bootstraps **TPM** (Tmux Plugin Manager) by `git clone`ing it into
+  `~/.tmux/plugins/tpm`, then runs `tpm install_plugins` headlessly in
+  a one-shot detached tmux session that sources the rendered
+  `tmux.conf`. This is best-effort: on failure, fall back to opening
+  tmux and pressing `prefix + I` manually. Idempotent. Skipped on
+  Windows-native (no native tmux).
 - Detects the **shell** via `lib/shell.sh` and renders
   `tmux/tmux.conf` so that `default-command` / `default-shell` point at
   the user's actual shell.
@@ -134,7 +140,9 @@ zero caveats.
 
 ## After install
 
-1. **Tmux plugins**: open tmux and press `prefix + I` (capital I). TPM
+1. **Tmux plugins**: the installer clones TPM and runs `install_plugins`
+   headlessly. If that step fails (e.g. tmux can't fork in your
+   environment), open tmux and press `prefix + I` (capital I) — TPM
    will clone Kanagawa, vim-tmux-navigator, tmux-resurrect, etc.
 2. **Oh My Zsh**: installer will offer to install it if missing. Without
    it, the `.zshrc` falls back gracefully (no autosuggestions / syntax
