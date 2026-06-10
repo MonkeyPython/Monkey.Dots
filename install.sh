@@ -25,6 +25,8 @@ source "$SCRIPT_DIR/lib/backup.sh"
 source "$SCRIPT_DIR/lib/symlink.sh"
 # shellcheck source=lib/install_brew.sh
 source "$SCRIPT_DIR/lib/install_brew.sh"
+# shellcheck source=lib/shell.sh
+source "$SCRIPT_DIR/lib/shell.sh"
 
 # --- Defaults & flags ------------------------------------------------------
 
@@ -141,6 +143,36 @@ do_uninstall() {
 
 # --- Install plan ----------------------------------------------------------
 
+# Render the repo's tmux/tmux.conf (with placeholder substitution) to
+# ~/.config/tmux/tmux.conf. Unlike the other configs, this one is written
+# as a real file (not a symlink) because it must reflect the user's
+# actual shell path.
+install_tmux_conf() {
+  local target="$MONKEY_HOME/.config/tmux/tmux.conf"
+  local source="$MONKEY_REPO/tmux/tmux.conf"
+  local shell_path
+  shell_path="$(monkey_resolve_shell)"
+
+  log_info "Default shell for tmux: $shell_path"
+
+  if [[ "$MONKEY_DRY_RUN" == "1" ]]; then
+    log_info "DRY-RUN: would render $source -> $target"
+    return 0
+  fi
+
+  # Back up any existing target.
+  if [[ -e "$target" || -L "$target" ]]; then
+    monkey_backup_if_exists "$target" "tmux config"
+  fi
+
+  mkdir -p "$(dirname "$target")"
+  if ! monkey_render_tmux_conf "$source" "$shell_path" > "$target"; then
+    log_error "Failed to render tmux.conf"
+    return 1
+  fi
+  log_ok "Rendered tmux config -> $target"
+}
+
 plan_install() {
   log_step "System summary"
   log_info  "OS:         $MONKEY_OS_NAME"
@@ -170,8 +202,12 @@ plan_install() {
   # ~/.config/wezterm -> <repo>/wezterm  (whole dir, contains wezterm.lua)
   monkey_link "wezterm"      "$MONKEY_HOME/.config/wezterm"      "wezterm config"
 
-  # ~/.config/tmux/tmux.conf -> <repo>/tmux/tmux.conf
-  monkey_link "tmux/tmux.conf" "$MONKEY_HOME/.config/tmux/tmux.conf" "tmux config"
+  # ~/.config/tmux/tmux.conf
+  # NOTE: unlike the other targets, this one is *rendered*, not symlinked.
+  # The repo's tmux.conf has a # MONKEY_DEFAULT_SHELL placeholder that we
+  # substitute with the user's actual shell path. To re-render, just
+  # re-run ./install.sh.
+  install_tmux_conf
 
   # ~/.config/starship.toml
   monkey_link "starship/starship.toml" "$MONKEY_HOME/.config/starship.toml" "starship config"

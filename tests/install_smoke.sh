@@ -67,7 +67,19 @@ printf '\n[2/4] real install\n'
 "$REPO_ROOT/install.sh" --no-brew >/dev/null
 
 assert_symlink "$TEST_HOME/.config/wezterm"      "$REPO_ROOT/wezterm"
-assert_symlink "$TEST_HOME/.config/tmux/tmux.conf" "$REPO_ROOT/tmux/tmux.conf"
+# tmux/tmux.conf is a *rendered* file (not a symlink) because the installer
+# substitutes the MONKEY_DEFAULT_SHELL placeholder with the user's real
+# shell path. Verify it exists, is a regular file, and contains the
+# substituted directives.
+[[ -f "$TEST_HOME/.config/tmux/tmux.conf" ]] || \
+  fail "tmux.conf not rendered to $TEST_HOME/.config/tmux/tmux.conf"
+[[ ! -L "$TEST_HOME/.config/tmux/tmux.conf" ]] || \
+  fail "tmux.conf should be a regular file, not a symlink"
+grep -q '^set -g default-shell' "$TEST_HOME/.config/tmux/tmux.conf" || \
+  fail "rendered tmux.conf missing 'set -g default-shell'"
+grep -q '# MONKEY_DEFAULT_SHELL' "$TEST_HOME/.config/tmux/tmux.conf" && \
+  fail "rendered tmux.conf still contains the placeholder"
+pass "rendered tmux.conf is a regular file with substituted shell path"
 assert_symlink "$TEST_HOME/.config/starship.toml"  "$REPO_ROOT/starship/starship.toml"
 assert_symlink "$TEST_HOME/.zshrc"                 "$REPO_ROOT/zsh/.zshrc"
 assert_symlink "$TEST_HOME/.p10k.zsh"              "$REPO_ROOT/zsh/.p10k.zsh"

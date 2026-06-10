@@ -56,14 +56,20 @@ tmux to install TPM plugins.
 
 ## What gets linked
 
-| Repo path            | Destination                                |
-|----------------------|--------------------------------------------|
-| `wezterm/`           | `~/.config/wezterm`                        |
-| `tmux/tmux.conf`     | `~/.config/tmux/tmux.conf`                 |
-| `starship/starship.toml` | `~/.config/starship.toml`              |
-| `zsh/.zshrc`         | `~/.zshrc`                                 |
-| `zsh/.p10k.zsh`      | `~/.p10k.zsh`                              |
-| `git/.gitconfig`     | `~/.gitconfig`                             |
+| Repo path            | Destination                                | How |
+|----------------------|--------------------------------------------|-----|
+| `wezterm/`           | `~/.config/wezterm`                        | symlink (whole dir) |
+| `tmux/tmux.conf`     | `~/.config/tmux/tmux.conf`                 | **rendered** (substitutes `MONKEY_DEFAULT_SHELL` with your real shell path) |
+| `starship/starship.toml` | `~/.config/starship.toml`              | symlink |
+| `zsh/.zshrc`         | `~/.zshrc`                                 | symlink |
+| `zsh/.p10k.zsh`      | `~/.p10k.zsh`                              | symlink |
+| `git/.gitconfig`     | `~/.gitconfig`                             | symlink |
+
+`tmux.conf` is the only target that's **rendered** (not symlinked), so
+that the installer's shell-detection result (`$SHELL` → brew `zsh` →
+`bash` → `/bin/sh`) ends up in your `default-command` / `default-shell`
+directives. Re-running `./install.sh` re-renders it with the current
+shell. To change the shell: edit your environment, then re-run.
 
 Any pre-existing file at those paths is backed up to
 `~/.dotfiles-backup/<timestamp>/...` first.

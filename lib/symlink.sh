@@ -55,14 +55,20 @@ monkey_link() {
   log_ok "Linked $label -> $abs_source"
 }
 
-# Remove a symlink we previously created. Does not touch regular files.
+# Remove a symlink or a regular file we previously created/wrote.
+# Refuses to recurse into directories.
 monkey_unlink() {
   local target="$1"
   local label="${2:-$1}"
 
-  if [[ ! -L "$target" ]]; then
-    log_info "Skip: $label is not a symlink"
+  if [[ ! -e "$target" && ! -L "$target" ]]; then
+    log_info "Skip: $label does not exist"
     return 0
+  fi
+
+  if [[ -d "$target" && ! -L "$target" ]]; then
+    log_warn "Refusing to remove directory: $label"
+    return 1
   fi
 
   if [[ "$MONKEY_DRY_RUN" == "1" ]]; then
@@ -71,5 +77,5 @@ monkey_unlink() {
   fi
 
   rm "$target"
-  log_ok "Unlinked $label"
+  log_ok "Removed $label"
 }

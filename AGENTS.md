@@ -19,7 +19,7 @@ No Neovim, no TUI installer, no Vim Trainer.
 | Add a new package to install | `lib/install_brew.sh` (`install_recommended_stack`) |
 | Change the palette | `wezterm/wezterm.lua` (ANSI table) + `starship/starship.toml` (`[palettes.monkey]`) |
 | Add a new OS / platform | `lib/detect.sh` (`detect_os`) + `lib/install_brew.sh` |
-| Tweak tmux config | `tmux/tmux.conf` (mirrored from upstream) |
+| Tweak tmux config | `tmux/tmux.conf` (mirrored from upstream) + `lib/shell.sh` (renders placeholder) |
 | Add an alias / env var | `zsh/.zshrc` (mirror the existing detection blocks) |
 | Add a test | `tests/install_smoke.sh` (assert helpers: `assert_symlink`, `assert_file_content`) |
 

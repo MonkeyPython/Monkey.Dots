@@ -57,14 +57,21 @@ Luego reinicia tu terminal (o `exec zsh`) y dentro de tmux pulsa
 
 ## Qué se linkea
 
-| Ruta en el repo       | Destino                                |
-|-----------------------|----------------------------------------|
-| `wezterm/`            | `~/.config/wezterm`                    |
-| `tmux/tmux.conf`      | `~/.config/tmux/tmux.conf`             |
-| `starship/starship.toml` | `~/.config/starship.toml`           |
-| `zsh/.zshrc`          | `~/.zshrc`                             |
-| `zsh/.p10k.zsh`       | `~/.p10k.zsh`                          |
-| `git/.gitconfig`      | `~/.gitconfig`                         |
+| Ruta en el repo       | Destino                                | Cómo |
+|-----------------------|----------------------------------------|------|
+| `wezterm/`            | `~/.config/wezterm`                    | symlink (directorio entero) |
+| `tmux/tmux.conf`      | `~/.config/tmux/tmux.conf`             | **renderizado** (sustituye `MONKEY_DEFAULT_SHELL` con tu shell real) |
+| `starship/starship.toml` | `~/.config/starship.toml`           | symlink |
+| `zsh/.zshrc`          | `~/.zshrc`                             | symlink |
+| `zsh/.p10k.zsh`       | `~/.p10k.zsh`                          | symlink |
+| `git/.gitconfig`      | `~/.gitconfig`                         | symlink |
+
+`tmux.conf` es el único target que se **renderiza** (no se symlinkea),
+para que el resultado de la detección de shell del instalador
+(`$SHELL` → brew `zsh` → `bash` → `/bin/sh`) termine en las directivas
+`default-command` / `default-shell`. Re-ejecutar `./install.sh`
+lo re-renderiza con el shell actual. Para cambiar el shell: edita
+tu entorno y re-ejecuta.
 
 Cualquier archivo preexistente en esas rutas se respalda primero a
 `~/.dotfiles-backup/<timestamp>/...`.
