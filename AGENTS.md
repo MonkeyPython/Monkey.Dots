@@ -25,6 +25,7 @@ No Neovim, no TUI installer, no Vim Trainer.
 | Change TPM bootstrap behaviour | `lib/install_tpm.sh` (`tpm_clone`, `tpm_install_plugins_headless`) |
 | Add/remove/bump a brew/winget package | `lib/packages.toml` (`[macos]`, `[linux]`, `[windows]`) |
 | Add an alias / env var | `zsh/.zshrc` (mirror the existing detection blocks) |
+| Add a backup subcommand (list/restore/prune/...) | `bin/monkey-backups` (each subcommand is a `cmd_*` function) |
 | Add a test | `tests/install_smoke.sh` (assert helpers: `assert_symlink`, `assert_file_content`) |
 
 ## Style rules

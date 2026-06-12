@@ -91,6 +91,30 @@ tmux to install TPM plugins.
 ./uninstall.sh --keep-backup  # remove symlinks, leave backups alone
 ```
 
+## Inspecting backups
+
+`bin/monkey-backups` is a small companion command for working with
+the backup tree at `~/.dotfiles-backup/`:
+
+```bash
+./bin/monkey-backups list
+```
+
+```
+[ ok ]  Found 2 backup(s) at /Users/mono/.dotfiles-backup
+
+  TIMESTAMP        FILES         SIZE      AGE
+  ----------       -----         ----      ---
+  20260610-093000      2 files      8K  2d ago
+  20260601-120000      2 files      8K  10d ago
+
+[info]  To restore the most recent backup: ./install.sh --restore
+```
+
+Subcommands: `list`, `help`. Future subcommands (`restore <ts>`,
+`prune --keep N`, `snapshot`, `diff`) can be added without touching
+`install.sh`.
+
 ## What gets linked
 
 | Repo path            | Destination                                | How |

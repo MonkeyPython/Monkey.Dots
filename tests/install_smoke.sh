@@ -52,7 +52,7 @@ assert_file_content() {
 
 # --- 1. dry-run -----------------------------------------------------------
 
-printf '\n[1/18] dry-run\n'
+printf '\n[1/21] dry-run\n'
 # Snapshot existing files to confirm dry-run is fully non-destructive.
 snapshot_before="$(find "$TEST_HOME" -type f -o -type l | sort)"
 "$REPO_ROOT/install.sh" --no-brew --dry-run >/dev/null
@@ -63,7 +63,7 @@ pass "dry-run made no changes"
 
 # --- 2. real install ------------------------------------------------------
 
-printf '\n[2/18] real install\n'
+printf '\n[2/21] real install\n'
 "$REPO_ROOT/install.sh" --no-brew >/dev/null
 
 assert_symlink "$TEST_HOME/.config/wezterm"      "$REPO_ROOT/wezterm"
@@ -98,14 +98,14 @@ assert_file_content "$TEST_HOME/.config/starship.toml"        "MONKEY DOTS - STA
 
 # --- 3. idempotency -------------------------------------------------------
 
-printf '\n[3/18] idempotent re-run\n'
+printf '\n[3/21] idempotent re-run\n'
 "$REPO_ROOT/install.sh" --no-brew >/dev/null
 [[ -L "$TEST_HOME/.zshrc" ]] || fail "second run removed symlink"
 pass "second install run is idempotent"
 
 # --- 4. uninstall ---------------------------------------------------------
 
-printf '\n[4/18] uninstall\n'
+printf '\n[4/21] uninstall\n'
 "$REPO_ROOT/uninstall.sh" --keep-backup >/dev/null
 [[ ! -L "$TEST_HOME/.config/wezterm" ]] || fail "uninstall left wezterm symlink"
 [[ ! -L "$TEST_HOME/.zshrc" ]]           || fail "uninstall left .zshrc symlink"
@@ -113,7 +113,7 @@ pass "uninstall removed symlinks"
 
 # --- 5. font installer (dry-run, simulated Linux, no brew) ----------------
 
-printf '\n[5/18] font installer (dry-run)\n'
+printf '\n[5/21] font installer (dry-run)\n'
 FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
 # Simulate Linux-without-brew by clearing the brew variables and forcing OS.
 (
@@ -140,7 +140,7 @@ rm -rf "$FONT_TEST_HOME"
 
 # --- 6. font installer idempotency (real run, pre-seeded dir) -----------
 
-printf '\n[6/18] font installer idempotency (pre-seeded)\n'
+printf '\n[6/21] font installer idempotency (pre-seeded)\n'
 FONT_TEST_HOME="$(mktemp -d -t monkey-font-smoke.XXXXXX)"
 (
   export HOME="$FONT_TEST_HOME"
@@ -169,7 +169,7 @@ rm -rf "$FONT_TEST_HOME"
 
 # --- 7. Oh My Zsh installer (dry-run, simulated Linux) -------------------
 
-printf '\n[7/18] OMZ installer (dry-run)\n'
+printf '\n[7/21] OMZ installer (dry-run)\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -196,7 +196,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 8. OMZ installer idempotency (real run, pre-seeded dir) -------------
 
-printf '\n[8/18] OMZ installer idempotency (pre-seeded)\n'
+printf '\n[8/21] OMZ installer idempotency (pre-seeded)\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -225,7 +225,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 9. OMZ installer skips on Windows-native ----------------------------
 
-printf '\n[9/18] OMZ installer skips on Windows-native\n'
+printf '\n[9/21] OMZ installer skips on Windows-native\n'
 OMZ_TEST_HOME="$(mktemp -d -t monkey-omz-smoke.XXXXXX)"
 (
   export HOME="$OMZ_TEST_HOME"
@@ -252,7 +252,7 @@ rm -rf "$OMZ_TEST_HOME"
 
 # --- 10. TPM installer (dry-run, simulated Linux) ------------------------
 
-printf '\n[10/18] TPM installer (dry-run)\n'
+printf '\n[10/21] TPM installer (dry-run)\n'
 TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
 (
   export HOME="$TPM_TEST_HOME"
@@ -287,7 +287,7 @@ rm -rf "$TPM_TEST_HOME"
 
 # --- 11. TPM installer idempotency (real run, pre-seeded dir) ----------
 
-printf '\n[11/18] TPM installer idempotency (pre-seeded)\n'
+printf '\n[11/21] TPM installer idempotency (pre-seeded)\n'
 TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
 (
   export HOME="$TPM_TEST_HOME"
@@ -322,7 +322,7 @@ rm -rf "$TPM_TEST_HOME"
 
 # --- 12. TPM installer skips on Windows-native --------------------------
 
-printf '\n[12/18] TPM installer skips on Windows-native\n'
+printf '\n[12/21] TPM installer skips on Windows-native\n'
 TPM_TEST_HOME="$(mktemp -d -t monkey-tpm-smoke.XXXXXX)"
 (
   export HOME="$TPM_TEST_HOME"
@@ -355,7 +355,7 @@ rm -rf "$TPM_TEST_HOME"
 
 # --- 13. chsh helper: already-running zsh is a no-op ---------------------
 
-printf '\n[13/18] chsh helper skips when $SHELL is already zsh\n'
+printf '\n[13/21] chsh helper skips when $SHELL is already zsh\n'
 CHSH_TEST_HOME="$(mktemp -d -t monkey-chsh-smoke.XXXXXX)"
 (
   export HOME="$CHSH_TEST_HOME"
@@ -383,7 +383,7 @@ rm -rf "$CHSH_TEST_HOME"
 
 # --- 14. chsh helper: prints instructions when SHELL is not zsh --------
 
-printf '\n[14/18] chsh helper prints instructions when SHELL is not zsh\n'
+printf '\n[14/21] chsh helper prints instructions when SHELL is not zsh\n'
 CHSH_TEST_HOME="$(mktemp -d -t monkey-chsh-smoke.XXXXXX)"
 (
   export HOME="$CHSH_TEST_HOME"
@@ -418,7 +418,7 @@ rm -rf "$CHSH_TEST_HOME"
 
 # --- 15. chsh helper: skips on Windows-native ---------------------------
 
-printf '\n[15/18] chsh helper skips on Windows-native\n'
+printf '\n[15/21] chsh helper skips on Windows-native\n'
 CHSH_TEST_HOME="$(mktemp -d -t monkey-chsh-smoke.XXXXXX)"
 (
   export HOME="$CHSH_TEST_HOME"
@@ -444,7 +444,7 @@ rm -rf "$CHSH_TEST_HOME"
 
 # --- 16. packages parser: load real manifest ---------------------------
 
-printf '\n[16/18] packages parser loads lib/packages.toml\n'
+printf '\n[16/21] packages parser loads lib/packages.toml\n'
 (
   export HOME="/tmp/monkey-pkg-test"
   # shellcheck disable=SC1091
@@ -474,7 +474,7 @@ rm -rf "/tmp/monkey-pkg-test"
 
 # --- 17. packages parser: field-by-field reader ------------------------
 
-printf '\n[17/18] packages parser reads individual fields\n'
+printf '\n[17/21] packages parser reads individual fields\n'
 (
   export HOME="/tmp/monkey-pkg-test"
   # shellcheck disable=SC1091
@@ -499,7 +499,7 @@ rm -rf "/tmp/monkey-pkg-test"
 
 # --- 18. packages parser: fallback when manifest missing ---------------
 
-printf '\n[18/18] packages parser falls back to hardcoded defaults\n'
+printf '\n[18/21] packages parser falls back to hardcoded defaults\n'
 (
   set +e  # this subtest intentionally inspects a non-zero return
   export HOME="/tmp/monkey-pkg-test"
@@ -520,5 +520,67 @@ printf '\n[18/18] packages parser falls back to hardcoded defaults\n'
   pass "fallback populated globals when manifest missing"
 )
 rm -rf "/tmp/monkey-pkg-test"
+
+# --- 19. monkey-backups list: no backup dir ----------------------------
+
+printf '\n[19/21] monkey-backups list: no backup dir exists\n'
+MB_TEST_HOME="$(mktemp -d -t monkey-mb-smoke.XXXXXX)"
+(
+  export HOME="$MB_TEST_HOME"
+  out="$("$REPO_ROOT/bin/monkey-backups" list 2>&1)"
+  rc=$?
+  [[ $rc -eq 0 ]] || fail "monkey-backups list returned non-zero: $rc"
+  if ! grep -q 'No backups found' <<< "$out"; then
+    fail "expected 'No backups found' message, got: $out"
+  fi
+  pass "monkey-backups list handles missing backup dir"
+)
+rm -rf "$MB_TEST_HOME"
+
+# --- 20. monkey-backups list: empty backup dir -------------------------
+
+printf '\n[20/21] monkey-backups list: empty backup dir\n'
+MB_TEST_HOME="$(mktemp -d -t monkey-mb-smoke.XXXXXX)"
+mkdir -p "$MB_TEST_HOME/.dotfiles-backup"
+(
+  export HOME="$MB_TEST_HOME"
+  out="$("$REPO_ROOT/bin/monkey-backups" list 2>&1)"
+  rc=$?
+  [[ $rc -eq 0 ]] || fail "monkey-backups list returned non-zero: $rc"
+  if ! grep -q 'No backups found' <<< "$out"; then
+    fail "expected 'No backups found' message, got: $out"
+  fi
+  pass "monkey-backups list handles empty backup dir"
+)
+rm -rf "$MB_TEST_HOME"
+
+# --- 21. monkey-backups list: with real backups -----------------------
+
+printf '\n[21/21] monkey-backups list: with real backups\n'
+MB_TEST_HOME="$(mktemp -d -t monkey-mb-smoke.XXXXXX)"
+mkdir -p "$MB_TEST_HOME/.dotfiles-backup/20240101-120000"
+echo "older-zsh" > "$MB_TEST_HOME/.dotfiles-backup/20240101-120000/.zshrc"
+mkdir -p "$MB_TEST_HOME/.dotfiles-backup/20260610-093000"
+echo "newer-zsh" > "$MB_TEST_HOME/.dotfiles-backup/20260610-093000/.zshrc"
+(
+  export HOME="$MB_TEST_HOME"
+  out="$("$REPO_ROOT/bin/monkey-backups" list 2>&1)"
+  rc=$?
+  [[ $rc -eq 0 ]] || fail "monkey-backups list returned non-zero: $rc"
+  if ! grep -q 'Found 2 backup' <<< "$out"; then
+    fail "expected 'Found 2 backup', got: $out"
+  fi
+  # Newest must be listed first (newer = 20260610, older = 20240101).
+  # Get the line numbers of each timestamp and check ordering.
+  newer_line="$(grep -n '20260610-093000' <<< "$out" | head -n1 | cut -d: -f1)"
+  older_line="$(grep -n '20240101-120000' <<< "$out" | head -n1 | cut -d: -f1)"
+  [[ -n "$newer_line" && -n "$older_line" ]] || \
+    fail "could not find both timestamps in output"
+  if (( newer_line >= older_line )); then
+    fail "newer backup (line $newer_line) should come before older (line $older_line)"
+  fi
+  pass "monkey-backups list shows 2 backups, newest first"
+)
+rm -rf "$MB_TEST_HOME"
 
 printf '\n\033[32mAll smoke tests passed.\033[0m\n'

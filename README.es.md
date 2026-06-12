@@ -92,6 +92,30 @@ Luego reinicia tu terminal (o `exec zsh`) y dentro de tmux pulsa
 ./uninstall.sh --keep-backup  # quita los symlinks, deja los backups
 ```
 
+## Inspeccionar los backups
+
+`bin/monkey-backups` es un comando compañero pequeño para trabajar
+con el árbol de backups en `~/.dotfiles-backup/`:
+
+```bash
+./bin/monkey-backups list
+```
+
+```
+[ ok ]  Found 2 backup(s) at /Users/mono/.dotfiles-backup
+
+  TIMESTAMP        FILES         SIZE      AGE
+  ----------       -----         ----      ---
+  20260610-093000      2 files      8K  2d ago
+  20260601-120000      2 files      8K  10d ago
+
+[info]  To restore the most recent backup: ./install.sh --restore
+```
+
+Subcomandos: `list`, `help`. Subcomandos futuros (`restore <ts>`,
+`prune --keep N`, `snapshot`, `diff`) pueden añadirse sin tocar
+`install.sh`.
+
 ## Qué se linkea
 
 | Ruta en el repo       | Destino                                | Cómo |

@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+# bin/monkey-backups - Inspect the backup tree created by install.sh
+#
+# Subcommands:
+#   list              List all backups in ~/.dotfiles-backup/, newest first.
+#                     Shows: timestamp, file count, total size, age.
+#   help              Show this help.
+#
+# Backups are created automatically by install.sh whenever it would
+# overwrite an existing config. Each backup lives at:
+#   ~/.dotfiles-backup/<YYYYMMDD-HHMMSS>/<mirrored-path>/
+#
+# Usage:
+#   bin/monkey-backups list
+#   bin/monkey-backups help
+#
+# Future subcommands (restore, prune, diff, snapshot) can be added here
+# without touching install.sh.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# shellcheck source=../lib/log.sh
+source "$REPO_ROOT/lib/log.sh"
+# shellcheck source=../lib/detect.sh
+source "$REPO_ROOT/lib/detect.sh"
+
+BACKUP_ROOT="$MONKEY_HOME/.dotfiles-backup"
+
+usage() {
+  cat <<'EOF'
+monkey-backups - inspect the dotfiles backup tree
+
+Usage:
+  monkey-backups <subcommand>
+
+Subcommands:
+  list    List all backups, newest first. Each row shows the timestamp,
+          number of files, total size, and age.
+  help    Show this help.
+
+Backups live at ~/.dotfiles-backup/<YYYYMMDD-HHMMSS>/<path>/. They are
+created automatically by install.sh whenever it would overwrite an
+existing config file or symlink.
+EOF
+}
+
+# Echo "0" if the backup root doesn't exist or is empty.
+backup_count() {
+  if [[ ! -d "$BACKUP_ROOT" ]]; then
+    printf '0\n'
+    return 0
+  fi
+  # Count only directories at depth 1 (each backup is a subdir).
+  # Use a null-delimited loop to avoid subshell/pipefail issues.
+  local n=0
+  while IFS= read -r -d '' entry; do
+    [[ -d "$entry" ]] && n=$(( n + 1 ))
+  done < <(find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+  printf '%s\n' "$n"
+}
+
+# Echo a human-readable age string for a given timestamp.
+# Args: <timestamp string like 20240101-123456>
+age_human() {
+  local stamp="$1"
+  local year="${stamp:0:4}" month="${stamp:4:2}" day="${stamp:6:2}"
+  local hour="${stamp:9:2}" min="${stamp:11:2}" sec="${stamp:13:2}"
+  # Try GNU date first (Linux), fall back to BSD (macOS).
+  local then_epoch now_epoch
+  then_epoch="$(date -u -d "${year}-${month}-${day}T${hour}:${min}:${sec}" +%s 2>/dev/null || true)"
+  if [[ -z "$then_epoch" ]]; then
+    then_epoch="$(date -u -j -f '%Y%m%d-%H%M%S' "$stamp" +%s 2>/dev/null || echo 0)"
+  fi
+  now_epoch="$(date -u +%s)"
+  if [[ "$then_epoch" == "0" || -z "$then_epoch" ]]; then
+    printf 'unknown\n'
+    return 0
+  fi
+  local diff=$(( now_epoch - then_epoch ))
+  if (( diff < 60 )); then
+    printf '%ss ago\n' "$diff"
+  elif (( diff < 3600 )); then
+    printf '%sm ago\n' $(( diff / 60 ))
+  elif (( diff < 86400 )); then
+    printf '%sh ago\n' $(( diff / 3600 ))
+  elif (( diff < 2592000 )); then
+    printf '%sd ago\n' $(( diff / 86400 ))
+  else
+    printf '%smo ago\n' $(( diff / 2592000 ))
+  fi
+}
+
+# Echo a human-readable size string (bytes -> B/K/M/G).
+size_human() {
+  local bytes="$1"
+  if   (( bytes < 1024 ));       then printf '%sB\n'  "$bytes"
+  elif (( bytes < 1048576 ));    then printf '%sK\n'  $(( bytes / 1024 ))
+  elif (( bytes < 1073741824 )); then printf '%sM\n'  $(( bytes / 1048576 ))
+  else                                printf '%sG\n'  $(( bytes / 1073741824 ))
+  fi
+}
+
+# Portable byte count of all regular files under a directory.
+# Tries stat -c (Linux), then stat -f (macOS), then du (always available).
+dir_byte_count() {
+  local dir="$1"
+  # GNU stat
+  if stat -c '%s' "$dir"/* >/dev/null 2>&1; then
+    stat -c '%s' "$dir"/* 2>/dev/null | awk '{s+=$1} END {print s+0}'
+    return
+  fi
+  # BSD stat (macOS) - use a here-string to avoid xargs quoting
+  if stat -f '%z' "$dir"/* >/dev/null 2>&1; then
+    stat -f '%z' "$dir"/* 2>/dev/null | awk '{s+=$1} END {print s+0}'
+    return
+  fi
+  # Final fallback: du in bytes, last line
+  du -sk "$dir" 2>/dev/null | tail -n1 | awk '{print $1 * 1024}'
+}
+
+# Print a row for a single backup dir.
+# Args: <abs path to backup dir>
+list_one() {
+  local dir="$1"
+  local stamp
+  stamp="$(basename "$dir")"
+
+  local file_count total_bytes
+  file_count="$(find "$dir" -type f 2>/dev/null | wc -l | tr -d ' ')"
+  total_bytes="$(dir_byte_count "$dir")"
+
+  printf '  %s  %5s files  %6s  %s\n' \
+    "$stamp" \
+    "$file_count" \
+    "$(size_human "${total_bytes:-0}")" \
+    "$(age_human "$stamp")"
+}
+
+# Subcommand: list
+cmd_list() {
+  local count
+  count="$(backup_count)"
+  if [[ "$count" == "0" ]]; then
+    log_info "No backups found at $BACKUP_ROOT"
+    log_info "Backups are created automatically the first time install.sh"
+    log_info "overwrites an existing config file or symlink."
+    return 0
+  fi
+
+  log_ok "Found $count backup(s) at $BACKUP_ROOT"
+  printf '\n'
+  printf '  %-15s  %-12s  %-8s  %s\n' "TIMESTAMP" "FILES" "SIZE" "AGE"
+  printf '  %-15s  %-12s  %-8s  %s\n' "----------" "-----" "----" "---"
+  # Newest first.
+  local stamps=()
+  while IFS= read -r -d '' entry; do
+    stamps+=("$(basename "$entry")")
+  done < <(find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+  # Sort newest first (timestamps are YYYYMMDD-HHMMSS, so lexical = chronological)
+  local IFS=$'\n'
+  local sorted
+  sorted="$(printf '%s\n' "${stamps[@]}" | sort -r)"
+  local stamp
+  while IFS= read -r stamp; do
+    [[ -n "$stamp" ]] && list_one "$BACKUP_ROOT/$stamp"
+  done <<< "$sorted"
+  printf '\n'
+  log_info "To restore the most recent backup: ./install.sh --restore"
+}
+
+# --- entry point ----------------------------------------------------------
+
+case "${1:-help}" in
+  list)   cmd_list ;;
+  help|-h|--help) usage ;;
+  *)      log_error "Unknown subcommand: $1"; usage; exit 2 ;;
+esac
